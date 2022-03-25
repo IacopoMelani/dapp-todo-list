@@ -5,7 +5,7 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-		<title>Dapp University | Todo List</title>
+		<title>Dapp Todo List</title>
 
 		<!-- Bootstrap -->
 		<link href="vendor/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
@@ -45,9 +45,7 @@
 		<nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
 			<a
 				class="navbar-brand col-sm-3 col-md-2 mr-0"
-				href="http://www.dappuniversity.com/free-download"
-				target="_blank"
-				>Dapp University | Todo List</a
+				>Dapp Todo List</a
 			>
 			<ul class="navbar-nav px-3">
 				<li class="nav-item text-nowrap d-none d-sm-none d-sm-block">
@@ -64,23 +62,39 @@
 						<p class="text-center">Loading...</p>
 					</div>
 					<div id="content">
-						<form onSubmit="App.createTask();">
-							<input
-								id="newTask"
-								type="text"
-								class="form-control"
-								placeholder="Add task..."
-								required
-							/>
+						<form onsubmit="App.createTask();">
+							<div class="row">
+								<div class="col">
+									<input
+										id="newTask"
+										type="text"
+										class="form-control"
+										placeholder="Add task..."
+										required
+									/>
+								</div>
+								<div class="col-auto">
+									<button class="btn" type="button" onclick="App.createTask();">Save</button>
+								</div>
+							</div>
 							<input type="submit" hidden="" />
 						</form>
+						<div class="taskTemplate" class="checkbox" style="display: none">
+							<label style="width: 100%;">
+								<div class="row d-flex">
+									<div class="col-auto">
+										<input type="checkbox" />
+									</div>
+									<div class="col-auto">
+										<span class="content">Task content goes here...</span>
+									</div>
+									<div class="col d-flex justify-content-end">
+										<button class="btn btn-sm btn-danger" type="button">delete</button>
+									</div>
+								</div>
+							</label>
+						</div>
 						<ul id="taskList" class="list-unstyled">
-							<div class="taskTemplate" class="checkbox" style="display: none">
-								<label>
-									<input type="checkbox" />
-									<span class="content">Task content goes here...</span>
-								</label>
-							</div>
 						</ul>
 						<ul id="completedTaskList" class="list-unstyled"></ul>
 					</div>

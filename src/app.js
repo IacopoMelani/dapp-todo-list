@@ -1,5 +1,5 @@
 
-App = {
+const App = {
     loading: false,
     contracts: {},
 
@@ -7,6 +7,7 @@ App = {
         await App.loadWeb3()
         await App.loadAccount()
         await App.loadContract()
+        await App.registerEvents()
         await App.render()
     },
 
@@ -64,6 +65,39 @@ App = {
         App.todoList = await App.contracts.TodoList.deployed()
     },
 
+    registerEvents: async() => {
+
+        App.todoList.TaskCreated((error, result) => {
+            if(error) {
+                console.log(error)
+            } else {
+                console.log('TaskCreated Event:', result);
+                App.setLoading(false)
+                App.render()
+            }
+        })
+
+        App.todoList.TaskToggled((error, result) => {
+            if(error) {
+                console.log(error)
+            } else {
+                console.log('TaskToggled Event:', result);
+                App.setLoading(false)
+                App.render()
+            }
+        })
+
+        App.todoList.TaskDeleted((error, result) => {
+            if(error) {
+                console.log(error)
+            } else {
+                console.log('TaskDeleted Event:', result);
+                App.setLoading(false)
+                App.render()
+            }
+        })
+    },
+
     render: async () => {
         // Prevent double render
         if (App.loading) {
@@ -74,7 +108,9 @@ App = {
         App.setLoading(true)
 
         // Render Account
-        $('#account').html(App.account)
+        $('#account').html(App.account).on('click', (e) => {
+            navigator.clipboard.writeText(e.target.innerHTML)
+        })
 
         // Render Tasks
         await App.renderTasks()
@@ -89,11 +125,21 @@ App = {
             return
         }
         App.setLoading(true)
-        await App.todoList.createTask(content, { from: App.account })
-        window.location.reload()
+        App.todoList.createTask(content, { from: App.account })
+    },
+
+    deleteTask: async (e) => {
+        App.setLoading(true)
+        const taskId = e.target.name
+        await App.todoList.deleteTask(taskId, { from: App.account })
     },
 
     renderTasks: async () => {
+
+        // empty the lists
+        $('#completedTaskList').empty()
+        $('#taskList').empty()
+
         // Load the total task count from the blockchain
         const taskCount = await App.todoList.accountTasksCount(App.account)
         const $taskTemplate = $('.taskTemplate')
@@ -102,6 +148,9 @@ App = {
         for (var i = 0;i < taskCount;i++) {
             // Fetch the task data from the blockchain
             const task = await App.todoList.accountTask(App.account, i)
+            if(task.deleted) {
+                continue
+            }
             const taskId = task[0]
             const taskContent = task[1]
             const taskCompleted = task[2]
@@ -113,6 +162,10 @@ App = {
                 .prop('name', taskId)
                 .prop('checked', taskCompleted)
                 .on('click', App.toggleCompleted)
+
+            $newTaskTemplate.find('button')
+                .prop('name', taskId)
+                .on('click', App.deleteTask)
 
             // Put the task in the correct list
             if (taskCompleted) {
@@ -130,7 +183,6 @@ App = {
         App.setLoading(true)
         const taskId = e.target.name
         await App.todoList.toggleTask(taskId, { from: App.account })
-        window.location.reload()
     },
 
     setLoading: (boolean) => {
