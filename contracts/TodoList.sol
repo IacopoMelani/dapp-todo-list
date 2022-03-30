@@ -8,6 +8,7 @@ contract TodoList is TodoListToken {
     event TaskCreated(
         uint256 indexed taskId,
         address indexed from,
+        address indexed to,
         string taskName
     );
 
@@ -26,6 +27,7 @@ contract TodoList is TodoListToken {
 
     struct Task {
         uint256 id;
+        address assigner;
         string content;
         bool completed;
         bool deleted;
@@ -59,16 +61,27 @@ contract TodoList is TodoListToken {
         return tasksCount[_account];
     }
 
-    function createTask(string memory _content) public {
+    function createTask(address _assignedTo, string memory _content) public {
         require(bytes(_content).length > 0, "Task content cannot be empty");
-        tasks[msg.sender][tasksCount[msg.sender]] = Task(
+
+        Task memory task = Task(
             tasksCount[msg.sender],
+            _assignedTo,
             _content,
             false,
             false
         );
-        tasksCount[msg.sender]++;
-        emit TaskCreated(tasksCount[msg.sender], msg.sender, _content);
+
+        tasks[_assignedTo][tasksCount[_assignedTo]] = task;
+
+        tasksCount[_assignedTo]++;
+
+        emit TaskCreated(
+            tasksCount[_assignedTo] - 1,
+            msg.sender,
+            _assignedTo,
+            _content
+        );
     }
 
     function deleteTask(uint256 _taskId) public {
@@ -76,7 +89,9 @@ contract TodoList is TodoListToken {
             accountTask(msg.sender, _taskId).deleted == false,
             "Task already deleted"
         );
+
         tasks[msg.sender][_taskId].deleted = true;
+
         emit TaskDeleted(
             _taskId,
             msg.sender,
