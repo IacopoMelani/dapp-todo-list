@@ -2,7 +2,9 @@
 
 pragma solidity ^0.8.0;
 
-contract TodoList {
+import "./TodoListToken.sol";
+
+contract TodoList is TodoListToken {
     event TaskCreated(
         uint256 indexed taskId,
         address indexed from,
@@ -82,15 +84,40 @@ contract TodoList {
         );
     }
 
-    function toggleTask(uint256 _id) public {
-        require(_id < tasksCount[msg.sender], "Task does not exist");
+    function mintAmountFromTaskCompleted() public view returns (uint256) {
+        return 10 * 10**decimals();
+    }
 
-        tasks[msg.sender][_id].completed = !tasks[msg.sender][_id].completed;
-        emit TaskToggled(
-            _id,
-            msg.sender,
-            tasks[msg.sender][_id].content,
-            tasks[msg.sender][_id].completed
+    function toggleTask(uint256 _taskId) public {
+        require(_taskId < tasksCount[msg.sender], "Task does not exist");
+        require(
+            accountTask(msg.sender, _taskId).deleted == false,
+            "Task already deleted"
         );
+        require(
+            accountTask(msg.sender, _taskId).completed == false,
+            "Task already completed"
+        );
+
+        tasks[msg.sender][_taskId].completed = true;
+
+        _mintFromTaskCompleted(msg.sender, _taskId);
+
+        emit TaskToggled(
+            _taskId,
+            msg.sender,
+            tasks[msg.sender][_taskId].content,
+            tasks[msg.sender][_taskId].completed
+        );
+    }
+
+    function _mintFromTaskCompleted(address _account, uint256 _taskId)
+        internal
+    {
+        require(
+            accountTask(_account, _taskId).completed == true,
+            "Task not completed"
+        );
+        _mint(_account, mintAmountFromTaskCompleted());
     }
 }
