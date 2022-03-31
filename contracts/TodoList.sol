@@ -64,24 +64,18 @@ contract TodoList is TodoListToken {
     function createTask(address _assignedTo, string memory _content) public {
         require(bytes(_content).length > 0, "Task content cannot be empty");
 
-        Task memory task = Task(
-            tasksCount[msg.sender],
-            _assignedTo,
-            _content,
-            false,
-            false
-        );
+        if (_assignedTo == address(0)) {
+            _assignedTo = msg.sender;
+        }
 
-        tasks[_assignedTo][tasksCount[_assignedTo]] = task;
+        uint256 _taskId = tasksCount[_assignedTo];
+
+        Task memory task = Task(_taskId, msg.sender, _content, false, false);
+        tasks[_assignedTo][_taskId] = task;
 
         tasksCount[_assignedTo]++;
 
-        emit TaskCreated(
-            tasksCount[_assignedTo] - 1,
-            msg.sender,
-            _assignedTo,
-            _content
-        );
+        emit TaskCreated(_taskId, msg.sender, _assignedTo, _content);
     }
 
     function deleteTask(uint256 _taskId) public {
@@ -116,7 +110,9 @@ contract TodoList is TodoListToken {
 
         tasks[msg.sender][_taskId].completed = true;
 
-        _mintFromTaskCompleted(msg.sender, _taskId);
+        if (accountTask(msg.sender, _taskId).assigner != msg.sender) {
+            _mintFromTaskCompleted(msg.sender, _taskId);
+        }
 
         emit TaskToggled(
             _taskId,
