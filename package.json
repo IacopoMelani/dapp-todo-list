@@ -20,7 +20,7 @@
         "lite-server": "^2.3.0",
         "nodemon": "^2.0.18",
         "truffle": "^5.5.6",
-        "truffle-contract": "^3.0.6"
+        "truffle-contract": "^4.0.31"
     },
     "dependencies": {
         "@openzeppelin/contracts": "^4.5.0",
